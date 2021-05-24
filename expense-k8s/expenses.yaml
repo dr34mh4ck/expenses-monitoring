@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: expenses-deployment
+  labels:
+    app: expenses
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: expenses
+  template:
+    metadata:
+      labels:
+        app: expenses
+    spec:
+      containers:
+      - name: expenses
+        image: dr34mh4ck/basicexpenses-app:latest
+        ports:
+        - containerPort: 9191
+        env:
+          - name: MONGO_USER
+            valueFrom:
+              secretKeyRef:
+                name: mongodb-secret
+                key: mongo-root-username
+          - name: MONGO_PASS
+            valueFrom:
+              secretKeyRef:
+                name: mongodb-secret
+                key: mongo-root-password
+          - name: MONGO_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: mongodb-configmap
+                key: database_url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: expenses-service
+spec:
+  selector:
+    app: expenses
+  ports:
+  - protocol: TCP
+    port: 9191
+    targetPort: 9191
